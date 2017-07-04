@@ -1,16 +1,17 @@
+# https://www.reddit.com/r/dailyprogrammer/comments/6l3hd8/20170703_challenge_322_easy_all_pairs_test/djr0jsx/
+
 import itertools
 import pprint
 
-input = [['0', '1'], ['A', 'B', 'C'], ['D', 'E', 'F', 'G']]
+#input = [['0', '1'], ['A', 'B', 'C'], ['D', 'E', 'F', 'G']]
 #input = [['0', '1', '2', '3'], ['A', 'B', 'C', 'D'], ['E', 'F', 'G', 'H', 'I']]
-#input = [['0', '1', '2', '3', '4'], ['A', 'B', 'C', 'D', 'E'], ['F', 'G', 'H', 'I'], ['J', 'K', 'L']]
-#input = [['0', '1', '2', '3', '4'], ['A', 'B', 'C', 'D', 'E'], ['F', 'G', 'H', 'I'], ['J', 'K', 'L'], ['X', 'Y', 'Z']]
+input = [['0', '1', '2', '3', '4'], ['A', 'B', 'C', 'D', 'E'], ['F', 'G', 'H', 'I'], ['J', 'K', 'L']]
 
 pair_dict = dict()
 final_results = []
 
-def do_scan(min_unique):
-    global pair_dict
+#for min_unique in range(len(input), 0, -1):
+for min_unique in range(6, 0, -1):
     for k in itertools.product(*input):
         save = False
         unique_count = 0
@@ -24,14 +25,11 @@ def do_scan(min_unique):
                 temp_dict[n] = None
                 if unique_count >= min_unique:
                     save = True
-        print k, unique_count, "unique. min is", min_unique, "- save is", save
+        #print k, unique_count, "unique. min is", min_unique, "- save is", save
         if save:
             final_results.append(k)
             temp_dict = pair_dict = dict(pair_dict.items() + temp_dict.items())
 
-# TODO: drive range dynamically based on input list?
-for i in range(6, 0, -1):
-    do_scan(i)
 
 pp = pprint.PrettyPrinter(indent=4)
 pp.pprint(final_results)
