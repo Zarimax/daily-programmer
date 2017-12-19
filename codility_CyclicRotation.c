@@ -8,7 +8,7 @@ struct Results solution(int A[], int N, int K) {
     int i;
     int *B = (int *)0;
     
-    B = calloc(sizeof(int) * N, sizeof(int));
+    B = calloc(N, sizeof(int));
     memcpy(B, A, sizeof(int) * N);
 
     for(i = 0; i < N; i++)
