@@ -22,14 +22,14 @@ int solution(int H[], int N) {
             {
                 // if the wall height descreases, chew through the stack to see
                 // if an identical wall height was already placed
-                while (H[i] < stack[top])
+                while (top != -1 && H[i] < stack[top])
                 {
                     top--;  // pop from stack
                 }
 
                 // if an identical wall height exits, we do not need to add a new block
                 // if it does not, however, then we do
-                if (H[i] != stack[top])
+                if (top == -1 || H[i] != stack[top])
                 {
                     stack[++top] = H[i];    // push to stack
                     count++;                // increment block count
