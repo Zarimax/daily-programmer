@@ -1,110 +1,121 @@
 // C99 (gcc 6.2.0)
 
-// the overall strategy here is to track groups of values which sum to zero and push
-// potential subsets to the stack for later review
+// this is a 4-pass solution.
 
-void push(int value, int *stack, int *top)
-{
-    (*top)++;
-    stack[*top] = value;
-}
-
-int pop(int *stack, int *top)
-{
-    if (*top == -1)
-        return -1;
-    return (stack[(*top)--]);
-}
+#include <string.h>
 
 int solution(int A[], int N) {
-    int left_bound = 0, right_bound = N-1;
-    int longest_slice = 0;
-    int i, j;
-    int left_last = 0, left_sum = 0, left_slice = 0;
-    int right_last = 0, right_sum = 0, right_slice = 0;
-    int left_last_neg = 0, right_last_neg = 0;  
-    int stack[N];
-    int top = -1;
+    int M = 0;
+    int i;
+    char X[N], Y[N];
     
-    // trim left-most negative values
-    while (left_bound < N && A[left_bound] < 0)
-        left_bound++;
-    
-    // trim rightmost negative values
-    while (right_bound >= 0 && A[right_bound] < 0)
-        right_bound--;
-    
-    if (right_bound < 0) // no non-negative values exist - we can't have a non-negative sum so return 0
-        return 0;
-    if (right_bound == left_bound) // only 1 non-negative value exists
+    memset(X, ' ', sizeof(X));
+    memset(Y, ' ', sizeof(Y));
+
+    // pass #1: left-to-right
+    int sum = 0;
+    int len = 0;    
+    for (i = 0; i < N; i++)
     {
-        if (A[left_bound] == 0 || N < 2)
-            return 0; // the one value is a 0
+        sum += A[i];
+        if (sum >= 0)
+        {
+            X[i] = 'x';
+            len++;
+        }
+        
+        if (len > M)
+            M = len;        
+        
+        if (sum < 0)
+        {
+            sum = 0;
+            len = 0;
+        }
+    }
+    
+    // pass #2: right-to-left
+    sum = 0;
+    len = 0;
+    for (i = N-1; i >= 0; i--)
+    {
+        sum += A[i];
+        if (sum >= 0)
+        {
+            Y[i] = 'y';
+            len++;
+        }
+        
+        if (len > M)
+            M = len;        
+    
+        if (sum < 0)
+        {
+            sum = 0;
+            len = 0;
+        }
+    }
+    
+    // pass #3: left-to-right while flipping back-and-forth, with a preference for track X
+    char *current_track = X;
+    char *other_track = Y;
+    len = 0;
+    for (i = 0; i < N; i++)
+    {
+        if (current_track[i] != ' ')
+            len++;
         else
-            return 2; // the one value is a 1, which creates a span of 2 when paired with a trimmed -1
+        {
+            if ((i - 1 >= 0) && other_track[i] != ' ' && other_track[i-1] == ' ')
+            {
+                char * temp = current_track;
+                current_track = other_track;
+                other_track = temp;
+                len++;
+            }
+            else
+            {
+                len = 0;
+                current_track = X;
+                other_track = Y;
+            }
+        }
+            
+        if (len > M)
+            M = len; 
     }
     
-    while (left_bound != -1 && right_bound != -1 && left_bound < right_bound)
+    // pass #4: right-to-left while flipping back-and-forth, with a preference for track Y
+    current_track = Y;
+    other_track = X;
+    len = 0;
+    for (i = N-1; i >= 0; i--)
     {
-        left_last = left_bound;
-        right_last = right_bound;
-        
-        left_sum = right_sum = left_slice = right_slice = 0;
-        
-        // walk the array from both ends at the same time
-        for (i = left_bound, j = right_bound; (i < N-1) || (j >= 0); i++, j--)
+        if (current_track[i] != ' ')
+            len++;
+        else
         {
-            if (i < N-1) // if we have a new value going from left to right...
+            if ((i + 1 < N - 1) && other_track[i] != ' ' && other_track[i+1] == ' ')
             {
-                left_sum +=  A[i];
-    
-                if (left_sum == 0)
-                {
-                    left_slice += i - left_last + 1;
-                    left_last = i+1;
-                    if (left_last_neg)
-                        push(i, stack, &top);
-                }
-                
-                if (left_sum < 0)
-                    left_last_neg = 1;
-                else
-                    left_last_neg = 0;
-    
-                if (left_slice > longest_slice)
-                    longest_slice = left_slice;
+                char * temp = current_track;
+                current_track = other_track;
+                other_track = temp;
+                len++;
             }
-            
-            if (j >= 0) // if we have a new value going from right to left...
+            else
             {
-                right_sum += A[j];
-    
-                if (right_sum == 0)
-                {
-                    right_slice += right_last - j + 1;
-                    right_last = j-1;
-                    if (right_last_neg)
-                        push(j, stack, &top);
-                }
-                
-                if (right_sum < 0)
-                    right_last_neg = 1;
-                else
-                    right_last_neg = 0;
-            
-                if (right_slice > longest_slice)
-                    longest_slice = right_slice;
+                current_track = Y;
+                other_track = X;
+                len = 0;
             }
         }
- 
-        right_bound = pop(stack, &top);
-        left_bound = pop(stack, &top);       
-        while (left_bound > right_bound)
-        {
-            right_bound = pop(stack, &top);
-            left_bound = pop(stack, &top);
-        }
-    }
+            
+        if (len > M)
+            M = len;  
+    }    
     
-    return longest_slice;
+    if (M == 1)
+        M = 0;
+        
+    return M;
 }
