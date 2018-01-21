@@ -1,95 +1,49 @@
 // C99 (gcc 6.2.0)
 
-// this is a 3-pass solution.
-
-#include <string.h>
+// Codility Golden Award (Ferrum 2018) - #17
+// https://app.codility.com/cert/view/certMCJYNM-B445A5YSM5PSQEN2/
 
 int solution(int A[], int N) {
-    int M = 0;
-    int i;
-    char X[N], Y[N];
-    
-    memset(X, ' ', sizeof(X));
-    memset(Y, ' ', sizeof(Y));
+    int matching_sum_idx[N+1];  // maintains the last position in A of a given negative sum
+    int sum_array[N];           // maintains the sum of element i and all subsequent elements
+    int i, end;
+    int len=0, result=0, sum=0;
 
-    // pass #1: left-to-right
-    int sum = 0, total_sum = 0;
-    int len = 0;    
-    for (i = 0; i < N; i++)
+    for (i = 0; i <= N; i++)    // init array to -1
+        matching_sum_idx[i] = -1;
+
+    for (i = N-1; i >= 0; i--)  // walk through A backwards, accumulating and storing the sum
     {
         sum += A[i];
-        total_sum += A[i];
-        if (sum >= 0)
-        {
-            X[i] = 'x';
-            len++;
+        sum_array[i] = sum;
+        // the first time that we encounter a given sum, store the position of that sum in
+        // matching_sum_idx.
+        if (sum < 0 && matching_sum_idx[sum * -1] == -1)
+            matching_sum_idx[sum * -1] = i;
+    }
+
+    for (i = 0; i < N; i++)      // walk through A forwards
+    {
+        if (sum_array[i] >= 0)   // if the sum of this element and all subsequent elements is not
+        {                        // negative, then we know this is the largest span for i. check
+            if (N - i > result)  // if it is the largest overall and break out.
+                result = N - i;
+            break;
         }
-        
-        if (len > M)
-            M = len;        
-        
-        if (sum < 0)
+
+        // find the position where the sum of this element and all subsequent elements is cancelled
+        // out. that position minus the current position is the largest possible span for i.
+        end = matching_sum_idx[sum_array[i] * -1];
+        if (end > i)
         {
-            sum = 0;
-            len = 0;
+            len = end - i;
+            if (len > result)
+                result = len;
         }
     }
-    
-    if (total_sum >= 0)
-        return N;
-    
-    // pass #2: right-to-left
-    sum = 0;
-    len = 0;
-    for (i = N-1; i >= 0; i--)
-    {
-        sum += A[i];
-        if (sum >= 0)
-        {
-            Y[i] = 'y';
-            len++;
-        }
-        
-        if (len > M)
-            M = len;        
-    
-        if (sum < 0)
-        {
-            sum = 0;
-            len = 0;
-        }
-    }
-    
-    // pass #3: left-to-right while flipping back-and-forth
-    int xside = 0, yside = 0;
-    for (i = 0; i < N; i++)
-    {
-        if (X[i] != ' ')
-            xside++;
-        else
-        {
-            if (Y[i] != ' ' && Y[i-1] == ' ')
-                yside = xside;
-            xside = 0;
-        }
-        
-        if (Y[i] != ' ')
-            yside++;
-        else
-        {
-            if (X[i] != ' ' && X[i-1] == ' ')
-                xside = yside;
-            yside = 0;
-        }
-            
-        if (xside > M)
-            M = xside; 
-        if (yside > M)
-            M = yside;
-    }  
-    
-    if (M == 1)
-        M = 0;
-        
-    return M;
+
+    if (result == 1)   // cannot have a span of 1
+        result = 0;
+
+    return result;
 }
